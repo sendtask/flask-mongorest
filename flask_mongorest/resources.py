@@ -404,7 +404,7 @@ class Resource(object):
         else:
             return field_data_value
 
-    def save_related_objects(self, obj, parent_resources=None):
+    def save_related_objects(self, obj, parent_resources=None, **kw):
         if not parent_resources:
             parent_resources = [self]
         else:
@@ -439,16 +439,16 @@ class Resource(object):
                         else:
                             instance.save()
 
-    def save_object(self, obj, **kwargs):
+    def save_object(self, obj, force_insert=False, **kwargs):
         self.save_related_objects(obj, **kwargs)
-        obj.save()
+        obj.save(force_insert)
         obj.reload()
 
         self._dirty_fields = None # No longer dirty.
 
-    def _save(self, obj):
+    def _save(self, obj, force_insert=False):
         try:
-            self.save_object(obj)
+            self.save_object(obj, force_insert)
         except mongoengine.ValidationError, e:
             def serialize_errors(errors):
                 if hasattr(errors, 'iteritems'):
@@ -471,7 +471,7 @@ class Resource(object):
                     kwargs[field] = self._get('create_object', data, field, parent_resources=parent_resources)
         obj = self.document(**kwargs)
         if save:
-            self._save(obj)
+            self._save(obj, force_insert=True)
         return obj
 
     def update_object(self, obj, data=None, save=True, parent_resources=None):
