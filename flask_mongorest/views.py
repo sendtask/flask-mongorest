@@ -40,6 +40,9 @@ class ResourceView(View):
             return e.message, '400 Bad Request' 
         except mongoengine.ValidationError, e:
             raise BadRequest(description=e)
+        except Exception, e:
+            raise BadRequest(description=e)
+
 
     def get(self, **kwargs):
         pk = kwargs.pop('pk', None)
