@@ -441,14 +441,14 @@ class Resource(object):
 
     def save_object(self, obj, force_insert=False, **kwargs):
         self.save_related_objects(obj, **kwargs)
-        obj.save(force_insert)
+        obj.save(force_insert=force_insert)
         obj.reload()
 
         self._dirty_fields = None # No longer dirty.
 
     def _save(self, obj, force_insert=False):
         try:
-            self.save_object(obj, force_insert)
+            self.save_object(obj, force_insert=force_insert)
         except mongoengine.ValidationError, e:
             def serialize_errors(errors):
                 if hasattr(errors, 'iteritems'):
