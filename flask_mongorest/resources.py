@@ -105,10 +105,13 @@ class Resource(object):
             @TODO needs significant cleanup
             """
             if related == True and isinstance(field_instance or getattr(self.document, field_name), ReferenceField):
-                value = obj._data[field_name]
-                if value and not isinstance(value, DBRef):
-                    value = value.to_dbref()
-                return value
+                if obj._data.has_key(field_name):
+                    value = obj._data[field_name]
+                    if value:
+                        if not isinstance(value, DBRef):
+                            value = value.to_dbref()
+                        return value
+
             field_value = obj if field_instance else getattr(obj, field_name)
             field_instance = field_instance or getattr(self.document, field_name)
             if isinstance(field_instance, (ReferenceField, EmbeddedDocumentField)):
@@ -131,7 +134,7 @@ class Resource(object):
                         value = field_value()
                     else:
                         value = field_instance(obj)
-                     
+
                 if field_name in self._related_resources:
                     kwargs['related'] = True
                     return [self._related_resources[field_name]().serialize(o, **kwargs) for o in value]
@@ -314,10 +317,10 @@ class Resource(object):
                     if callable(method):
                         q = method()
                         if field_name in document_queryset.keys():
-                            document_queryset[field_name] = (document_queryset[field_name] | q._query_obj)          
+                            document_queryset[field_name] = (document_queryset[field_name] | q._query_obj)
                         else:
                             document_queryset[field_name] = q._query_obj
-            
+
             hints = {}
             for k,v in document_queryset.iteritems():
                 doc = self.get_related_resources()[k].document
@@ -334,7 +337,7 @@ class Resource(object):
                             hint_index[hinted].append(obj)
 
                     hints[k] = hint_index
-        
+
             for obj in qs:
                 for field, hint_index in hints.iteritems():
                     obj_id = obj.id
@@ -346,7 +349,7 @@ class Resource(object):
                         setattr(obj, field, [])
                         continue
                     setattr(obj, field, hint_index[obj_id])
-                    
+
         return qs, has_more
 
     def _get(self, method, data, field_name, field_instance=None, parent_resources=None):
